@@ -1,5 +1,4 @@
 import math
-import random
 from gamestate import GameState
 
 """
@@ -26,6 +25,12 @@ class MCTSNode(object):
         # connects to other nodes
         self.parent = parent
         self.children = children if children is not None else []
+
+    def get_score(self):
+        return self.score
+
+    def get_visited(self):
+        return self.visited
 
     def get_state(self):
         return self.state
@@ -79,11 +84,10 @@ class MCTSNode(object):
     def run_simulation(self):
         state = self.state
         while state.get_winner() == 0:
-            next_states = self.state.generate_next_states()
+            state = state.random_next_state()
             # it is a tie
-            if len(next_states) == 0:
+            if state is None:
                 return 0
-            state = random.choice(next_states)
         return state.get_winner()
 
     """

@@ -7,18 +7,22 @@ class GameState:
     """
     Takes:
         turn: the player who made the most recent move
-        recent_move: the most recent move. This is useful for identifying a winner
 
     """
-    def __init__(self, turn, recent_move):
+    def __init__(self, turn):
         self.turn = turn
-        self.recent_move = recent_move
 
     """
     Returns the player who made the most recent move
     """
     def get_turn(self):
         return self.turn
+
+    """
+    Returns a random next state.
+    """
+    def random_next_state(self):
+        raise NotImplementedError
 
     """
     Returns an iterable of next GameStates
