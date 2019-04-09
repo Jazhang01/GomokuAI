@@ -65,18 +65,32 @@ class MCTSNode(object):
         return child.mean_payout() + pow(2 * math.log(self.visited, 2) / child.get_visited(), 1/2)
 
     """
-    returns the child with the greatest UCB1
+    returns child with greatest mean payout
     """
     def best_child(self):
-        assert len(self.children) > 0, "node has no children"
+        assert len(self.children) > 0, "node had no children"
         best_child = self.children[0]
-        best_score = self.ucb1(best_child)
+        best_score = best_child.mean_payout()
         for child in self.children:
-            score = self.ucb1(child)
+            score = child.mean_payout()
             if score > best_score:
                 best_child = child
                 best_score = score
         return best_child
+
+    """
+    returns the child with the greatest UCB1
+    """
+    def best_ucb1_child(self):
+        assert len(self.children) > 0, "node has no children"
+        best_ucb1_child = self.children[0]
+        best_score = self.ucb1(best_ucb1_child)
+        for child in self.children:
+            score = self.ucb1(child)
+            if score > best_score:
+                best_ucb1_child = child
+                best_score = score
+        return best_ucb1_child
 
     """
     returns the winner of a random simulation
@@ -103,3 +117,7 @@ class MCTSNode(object):
             self.score += 1
         if self.parent is not None:
             self.parent.backprop(winner)
+
+    def __str__(self):
+        return "\n[Depth: {0}, Turn: {1}, Score: {2}, Visited: {3}, Mean Payout: {4}]".format(
+                   self.depth, self.state.get_turn(), self.score, self.visited, self.mean_payout())
