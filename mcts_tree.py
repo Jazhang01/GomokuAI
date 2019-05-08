@@ -1,5 +1,5 @@
 from mcts_node import MCTSNode
-
+import time
 
 class MCTSTree(object):
     def __init__(self, top):
@@ -10,14 +10,19 @@ class MCTSTree(object):
     def expand_node(node):
         assert isinstance(node, MCTSNode)
         assert node.get_state().get_winner() == 0, "cannot expand end state"
-        print("Expanding...\n" + node.get_state().__str__())
+        #print("Expanding...\n" + node.get_state().__str__())
         state = node.get_state()
         next_states = state.generate_next_states()
         for next_state in next_states:
-            print("child state: \n" + next_state.__str__())
+            #print("child state: \n" + next_state.__str__())
             child = MCTSNode(state=next_state, parent=node, depth=node.depth+1)
+
+            start = time.time()
             winner = child.run_simulation()
-            print("winner: ", winner, "\n---")
+            end = time.time()
+            print("rollout time: ", end - start)
+
+            #print("winner: ", winner, "\n---")
             child.backprop(winner)
             node.add_child(child)
 

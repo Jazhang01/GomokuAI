@@ -1,5 +1,6 @@
 import math
 from gamestate import GameState
+import time
 
 """
 A MCTSNode contains a GameState
@@ -97,11 +98,18 @@ class MCTSNode(object):
     """
     def run_simulation(self):
         state = self.state
+        states_looked_at = 0
         while state.get_winner() == 0:
+            start_time = time.time()
+            states_looked_at += 1
             state = state.random_next_state()
+            print(state)
             # it is a tie
             if state is None:
                 return 0
+            end_time = time.time()
+            #print("time: ", (end_time - start_time) * 1000, " ms")
+        #print("rollout depth: ", states_looked_at)
         return state.get_winner()
 
     """

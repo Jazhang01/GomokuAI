@@ -16,15 +16,14 @@ class BoardState(GameState):
                         generate_next_states does not have to recalculate all the possible moves
         search_breadth: the diagonal distance around filled tiles to search during generate_next_states
     """
-    def __init__(self, grid=None, turn=1, recent_move=None, coordinates=None, filled=None, search_breadth=2):
+    def __init__(self, grid, recent_move, turn=1, coordinates=None, filled=None, search_breadth=2):
         super().__init__(turn)
         assert BoardState.legal(grid), "grid not legal"
-        self.grid = grid if grid is not None else [[0 for i in range(19)] for j in range(19)]
+        self.grid = grid
+        self.recent_move = recent_move
         self.search_breadth = search_breadth
-        self.recent_move = recent_move if recent_move is not None else (int(self.size()/2), int(self.size()/2))
         self.filled = filled if filled is not None else self.generate_filled()
         self.coordinates = coordinates if coordinates is not None else self.generate_coordinates()
-
 
     """
     Returns the player who made the most recent move
@@ -179,7 +178,7 @@ class BoardState(GameState):
         return isinstance(other, type(self)) and (self.get_all_features() == other.get_all_features())
 
     """
-        returns a str representation of the board state
+    returns a str representation of the board state
     """
     def __str__(self):
         s = "\n".join([" ".join(["{:>2}".format(tile) for tile in row]) for row in self.grid]) + "\n"
