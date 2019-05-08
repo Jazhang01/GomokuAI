@@ -8,32 +8,40 @@ WINDOW_HEIGHT = 800
 GRID_WIDTH = 800
 GRID_HEIGHT = 800
 
+BLACK = 1
+WHITE = -1
 
-BLACK = 0
-WHITE = 1
+# TODO: General formatting of buttons/text boxes
+# TODO: ** Integrate gamestate.py into Application
 
 class Application(Frame):
+    """
+    Takes: width, height
+
+    Initialize variables for Application:
+    - board: a 2D array initialized to all 0s
+    - player_turn
+    - placed_pieces: an array (used as a stack) that keeps track of pieces placed in order
+        - each piece is a Canvas object (oval)
+    - grid_interval: adjusts spacing of lines on the board (determined by GRID_WIDTH and BOARD_SIZE)
+    """
     def __init__(self, master, width, height):
         super(Application, self).__init__(master)
         self.grid()
-        self.player_turn = WHITE
+        self.master = master
+        self.board = [[0] * BOARD_SIZE for _ in range(BOARD_SIZE)]
+        self.player_turn = BLACK
+        self.placed_pieces = []
         self.canvas = Canvas(master, width=width, height=height)
+        self.grid_interval = int(GRID_WIDTH / (BOARD_SIZE + 1))
         self.mults = None
         self.welcome()
-    def set_up_board(self):
-        self.canvas.bind("<Button-1>", self.onClick)
-        self.canvas.pack()
-        # TODO: When player hovers, a faded/transparent piece shows on intersection
-        #self.canvas.bind("<Motion>", self.hover)
-        #self.current_hover = tuple()
-        self.grid_interval = int(GRID_WIDTH/(BOARD_SIZE+1))
-        self.mults = [i for i in range(self.grid_interval, GRID_WIDTH, self.grid_interval)]
-        #Vertical
-        for i in range(0, GRID_WIDTH, self.grid_interval):
-            self.canvas.create_line([(i, self.grid_interval), (i, GRID_HEIGHT-self.grid_interval)], tag='grid_line')
-        #Horizontal
-        for i in range(0, GRID_HEIGHT, self.grid_interval):
-            self.canvas.create_line([(self.grid_interval, i), (GRID_WIDTH-self.grid_interval, i)], tag='grid_line')
+
+    """
+    Sets up welcome screen:
+    - Title
+    - Play button
+    """
     def welcome(self):
         self.title = Label(self,
               text = "Gomoku")
@@ -44,28 +52,94 @@ class Application(Frame):
                                 command = self.set_up_board)
         self.start_btn.config(font = ("Helvetica", 18))
         self.start_btn.grid(row = 1, column = 2)
-    def onClick(self, event):
-        x,y = self.getIntersection(event.x, event.y)
-        if (x != -1 and y != -1):
-            color = ["black", "white"][self.player_turn]
-            self.placePiece(x, y, color)
-            self.player_turn = not self.player_turn
-            # TODO: Don't let player place piece on the same spot
-            # TODO: Add "undo" function
+        # TODO: Player v. Player, Player v. Computer
 
-    def placePiece(self, x, y, color):
+    """
+    Sets up the board, including miscellaneous buttons such as undo, etc.
+    """
+    def set_up_board(self):
+        self.canvas.bind("<Button-1>", self.onClick)
+        self.canvas.grid(row = 0, column = 0)
+        # TODO: When player hovers, a faded/transparent piece shows on intersection
+        # self.canvas.bind("<Motion>", self.hover)
+        # self.current_hover = tuple()
+        self.draw_board()
+        self.undo_btn = Button(self.master,
+                                text = "Undo",
+                                command = self.undo_move)
+        self.undo_btn.config(font = ("Helvetica", 18))
+        self.undo_btn.grid(row = 1, column = 0)
+
+    """
+    Draws lines of board on canvas (board)
+    """
+    def draw_board(self):
+        self.mults = [i for i in range(self.grid_interval, GRID_WIDTH, self.grid_interval)]
+        # Vertical
+        for i in range(0, GRID_WIDTH, self.grid_interval):
+            self.canvas.create_line([(i, self.grid_interval), (i, GRID_HEIGHT - self.grid_interval)], tag='grid_line')
+        # Horizontal
+        for i in range(0, GRID_HEIGHT, self.grid_interval):
+            self.canvas.create_line([(self.grid_interval, i), (GRID_WIDTH - self.grid_interval, i)], tag='grid_line')
+
+    """
+    Handles user's click on canvas (board)
+    - If the click is near an available spot, user can place piece
+    """
+    def onClick(self, event):
+        x,y = self.get_intersection(event.x, event.y)
+        if (x != -1 and y != -1):
+            board_coords = self.get_board_coordinates(x, y)
+            if self.board[board_coords[0]][board_coords[1]] == 0:
+                self.placePiece(x, y)
+                self.board[board_coords[0]][board_coords[1]] = self.player_turn
+                self.player_turn = (-1)*self.player_turn
+
+    """
+    Draws piece with corresponding color of player's turn and adds to the self.placed_pieces stack
+    """
+    def placePiece(self, x, y):
+        if self.player_turn == BLACK:
+            color = "black"
+        else:
+            color = "white"
         scale = STONE_SIZE_FACTOR / 2
         piece = self.canvas.create_oval(x - (self.grid_interval * scale),
                                     y - (self.grid_interval * scale),
                                     x + (self.grid_interval * scale),
                                     y + (self.grid_interval * scale),
                                         fill = color)
+        self.placed_pieces.append(piece)
         return piece
+
+    """
+    Converts canvas coordinates to index values for the 2D array self.board
+    """
+    @staticmethod
+    def get_board_coordinates(x, y):
+        return int(x/40-1), int(y/40-1)
+
+    """
+    Undoes move:
+    - Pops last piece from self.placed_pieces stack
+    - Swaps current player turn
+    - Deletes last piece from canvas (board)
+    """
+    def undo_move(self):
+        last_piece = self.placed_pieces.pop()
+        last_piece_coords = self.canvas.coords(last_piece)
+        board_coords = self.get_board_coordinates(last_piece_coords[0]+self.grid_interval, last_piece_coords[1]+self.grid_interval)
+        self.board[board_coords[0]][board_coords[1]] = 0
+        self.player_turn = (-1)*self.player_turn
+        self.canvas.delete(last_piece)
 
     #def hover(self, event):
         #print("hovered at", event.x, event.y)
 
-    def getIntersection(self, x, y):
+    """
+    Gets the nearest set of coordinates that is the intersection of two lines on the canvas
+    """
+    def get_intersection(self, x, y):
         ans = [-1, -1]
         for i in range(0, len(self.mults)-1):
             if (self.mults[i] <= x and x <= self.mults[i+1]):
@@ -83,7 +157,7 @@ class Application(Frame):
 def main():
     root = Tk()
     root.title("Gomoku")
-    root.geometry(str(WINDOW_WIDTH)+"x"+str(WINDOW_HEIGHT))
+    #root.geometry(str(WINDOW_WIDTH)+"x"+str(WINDOW_HEIGHT))
     app = Application(root, WINDOW_WIDTH, WINDOW_HEIGHT)
     root.mainloop()
 
