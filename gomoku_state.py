@@ -161,6 +161,12 @@ class BoardState(GameState):
         return 0
 
     """
+    dumb heuristic for testing purposes
+    """
+    def heuristic(self):
+        return -1*self.turn
+
+    """
      returns whether a coordinate (y, x) is within the grid
     """
     def within_bounds(self, y, x):

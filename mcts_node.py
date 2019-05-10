@@ -15,7 +15,7 @@ class MCTSNode(object):
     score: the number of wins by the player who made the last move
     visited: the number of times this node was visited
     """
-    def __init__(self, state, parent=None, children=None, score=0, visited=0, depth=0):
+    def __init__(self, state, parent=None, children=None, score=0, visited=1, depth=0):
         assert isinstance(state, GameState)
         assert isinstance(parent, MCTSNode) or parent is None
         # internal variables
@@ -62,8 +62,8 @@ class MCTSNode(object):
     """
     Upper confidence bound 1. Used to choose the best child.
     """
-    def ucb1(self, child):
-        return child.mean_payout() + pow(2 * math.log(self.visited, 2) / child.get_visited(), 1/2)
+    def ucb1(self, child, c=1):
+        return child.mean_payout() + c*pow(2 * math.log(self.visited, 2) / child.get_visited(), 1/2)
 
     """
     returns child with greatest mean payout
@@ -96,20 +96,21 @@ class MCTSNode(object):
     """
     returns the winner of a random simulation
     """
-    def run_simulation(self):
+    def run_simulation(self, max_sim_depth=10):
         state = self.state
-        states_looked_at = 0
+        simulate_depth = 0
         while state.get_winner() == 0:
+            if simulate_depth > max_sim_depth:
+                return state.heuristic()
             start_time = time.time()
-            states_looked_at += 1
             state = state.random_next_state()
-            print(state)
             # it is a tie
             if state is None:
                 return 0
             end_time = time.time()
+            simulate_depth += 1
             #print("time: ", (end_time - start_time) * 1000, " ms")
-        #print("rollout depth: ", states_looked_at)
+        #print("rollout depth: ", simulate_depth)
         return state.get_winner()
 
     """

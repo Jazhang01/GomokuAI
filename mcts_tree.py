@@ -18,13 +18,18 @@ class MCTSTree(object):
             child = MCTSNode(state=next_state, parent=node, depth=node.depth+1)
 
             start = time.time()
-            winner = child.run_simulation()
+            #winner = child.run_simulation() # TODO - instead of expanding all children, choose best one
             end = time.time()
-            print("rollout time: ", end - start)
+            #print("rollout time: ", end - start)
 
             #print("winner: ", winner, "\n---")
-            child.backprop(winner)
+            #child.backprop(winner) # TODO - instead of expanding all children, choose best one
             node.add_child(child)
+
+        best_child = node.best_ucb1_child()
+        print(best_child.get_state())
+        winner = best_child.run_simulation()
+        best_child.backprop(winner)
 
         MCTSTree.update_depth(node, 1)
 
@@ -44,10 +49,12 @@ class MCTSTree(object):
             if parent is not None:
                 MCTSTree.update_depth(parent, node.get_depth())
 
-    def build_tree(self, depth=5):
+    def build_tree(self, depth=5, time_cutoff=60):
         self.expand_node(self.top)
         tree_depth = self.top.get_depth()
-        while tree_depth < depth:
+        start_time = time.time()
+        end_time = time.time()
+        while tree_depth < depth and end_time - start_time < time_cutoff:
             print("tree depth: ", tree_depth, " depth: ", depth)
             best_leaf = self.get_best_leaf(self.top)
             # if best leaf is an end state
@@ -57,9 +64,11 @@ class MCTSTree(object):
                 continue
             self.expand_node(best_leaf)
             tree_depth = max(tree_depth, best_leaf.get_depth())
+            end_time = time.time()
+            print(end_time - start_time)
 
-    def best_move(self, depth=5):
-        self.build_tree(depth)
+    def best_move(self, depth=5, time_cutoff=60):
+        self.build_tree(depth, time_cutoff)
         return self.top.best_child().get_state()
 
     def __str__(self):
