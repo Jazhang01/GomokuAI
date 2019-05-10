@@ -1,5 +1,5 @@
 from tkinter import *
-#from gamestate import gomoku_state
+import gomoku_state
 
 BOARD_SIZE = 19
 STONE_SIZE_FACTOR = 0.8
@@ -90,7 +90,7 @@ class Application(Frame):
         x,y = self.get_intersection(event.x, event.y)
         if (x != -1 and y != -1):
             board_coords = self.get_board_coordinates(x, y)
-            if self.board[board_coords[0]][board_coords[1]] == 0:
+            if self.board[board_coords[0]][board_coords[1]] == 0: # player is able to place piece
                 self.placePiece(x, y)
                 self.board[board_coords[0]][board_coords[1]] = self.player_turn
                 self.player_turn = (-1)*self.player_turn
@@ -126,12 +126,13 @@ class Application(Frame):
     - Deletes last piece from canvas (board)
     """
     def undo_move(self):
-        last_piece = self.placed_pieces.pop()
-        last_piece_coords = self.canvas.coords(last_piece)
-        board_coords = self.get_board_coordinates(last_piece_coords[0]+self.grid_interval, last_piece_coords[1]+self.grid_interval)
-        self.board[board_coords[0]][board_coords[1]] = 0
-        self.player_turn = (-1)*self.player_turn
-        self.canvas.delete(last_piece)
+        if len(self.placed_pieces) > 0:
+            last_piece = self.placed_pieces.pop()
+            last_piece_coords = self.canvas.coords(last_piece)
+            board_coords = self.get_board_coordinates(last_piece_coords[0]+self.grid_interval, last_piece_coords[1]+self.grid_interval)
+            self.board[board_coords[0]][board_coords[1]] = 0
+            self.player_turn = (-1)*self.player_turn
+            self.canvas.delete(last_piece)
 
     #def hover(self, event):
         #print("hovered at", event.x, event.y)
