@@ -75,7 +75,7 @@ class BoardState(GameState):
         return coordinates
 
     """
-    Adds a few more coordinates to self.coordinates based on recent_move
+    Adds a few more coordinates to self.coordinates based on recent_move.
     """
     def update_coordinates(self):
         y, x = tuple(c - self.search_breadth for c in self.recent_move)
