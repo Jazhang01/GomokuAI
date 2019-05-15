@@ -15,14 +15,13 @@ class MCTSNode(object):
     score: the number of wins by the player who made the last move
     visited: the number of times this node was visited
     """
-    def __init__(self, state, parent=None, children=None, score=0, visited=1, depth=0):
+    def __init__(self, state, parent=None, children=None, score=0, visited=1):
         assert isinstance(state, GameState)
         assert isinstance(parent, MCTSNode) or parent is None
         # internal variables
         self.state = state
         self.score = score
         self.visited = visited
-        self.depth = depth
         # connects to other nodes
         self.parent = parent
         self.children = children if children is not None else []
@@ -42,12 +41,6 @@ class MCTSNode(object):
     def get_children(self):
         return self.children
 
-    def get_depth(self):
-        return self.depth
-
-    def set_depth(self, depth):
-        self.depth = depth
-
     def add_child(self, child):
         assert isinstance(child, MCTSNode), "child is not a MCTSNode"
         self.children.append(child)
@@ -61,9 +54,10 @@ class MCTSNode(object):
 
     """
     Upper confidence bound 1. Used to choose the best child.
+    x is the exploration constant
     """
-    def ucb1(self, child, c=1):
-        return child.mean_payout() + c*pow(2 * math.log(self.visited, 2) / child.get_visited(), 1/2)
+    def ucb1(self, child, x=1):
+        return child.mean_payout() + x*pow(2 * math.log(self.visited, 2) / child.get_visited(), 1/2)
 
     """
     returns child with greatest mean payout
@@ -96,7 +90,7 @@ class MCTSNode(object):
     """
     returns the winner of a random simulation
     """
-    def run_simulation(self, max_sim_depth=10):
+    def run_simulation(self, max_sim_depth=100):
         state = self.state
         simulate_depth = 0
         while state.get_winner() == 0:
@@ -128,5 +122,5 @@ class MCTSNode(object):
             self.parent.backprop(winner)
 
     def __str__(self):
-        return "\n[Depth: {0}, Turn: {1}, Score: {2}, Visited: {3}, Mean Payout: {4}]".format(
-                   self.depth, self.state.get_turn(), self.score, self.visited, self.mean_payout())
+        return "\n[Turn: {0}, Score: {1}, Visited: {2}, Mean Payout: {3}]".format(
+                   self.state.get_turn(), self.score, self.visited, self.mean_payout())

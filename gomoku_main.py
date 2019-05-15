@@ -1,7 +1,7 @@
 from tkinter import *
 import gomoku_state
 
-BOARD_SIZE = 19
+BOARD_SIZE = 190
 STONE_SIZE_FACTOR = 0.8
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 800

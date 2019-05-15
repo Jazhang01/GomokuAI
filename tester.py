@@ -36,4 +36,4 @@ bs_toy = BoardState(grid=[[ 0, 0, 0, 0, 0, 0, 0, 0],
 n = MCTSNode(bs)
 t = MCTSTree(n)
 
-print("Best Move: \n", t.best_move(30, 60))
+print("Best Move: \n", t.best_move(60))
