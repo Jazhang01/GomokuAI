@@ -164,7 +164,22 @@ class BoardState(GameState):
     dumb heuristic for testing purposes
     """
     def heuristic(self):
-        return -1*self.turn
+        black_score = 0
+        white_score = 0
+        for y, row in enumerate(self.grid):
+            for x, val in enumerate(row):
+                delta_score = 0
+                for i in range(y - 3, y + 4):
+                    for j in range(x - 3, x + 4):
+                        if self.within_bounds(i, j) and not (i == y and j == x) and self.grid[i][j] == val:
+                            delta_score += 1.0 / self.diagonal_distance(y, x, i, j)
+                if val == 1:
+                    black_score += delta_score
+                elif val == -1:
+                    white_score += delta_score
+        if black_score >= white_score:
+            return 1
+        return -1
 
     """
      returns whether a coordinate (y, x) is within the grid
