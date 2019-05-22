@@ -1,7 +1,7 @@
 from tkinter import *
 import gomoku_state
 
-BOARD_SIZE = 190
+BOARD_SIZE = 19
 STONE_SIZE_FACTOR = 0.8
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 800
@@ -30,6 +30,7 @@ class Application(Frame):
         self.grid()
         self.master = master
         self.board = [[0] * BOARD_SIZE for _ in range(BOARD_SIZE)]
+        self.moves = 0
         self.player_turn = BLACK
         self.placed_pieces = []
         self.canvas = Canvas(master, width=width, height=height)
@@ -91,9 +92,17 @@ class Application(Frame):
         if (x != -1 and y != -1):
             board_coords = self.get_board_coordinates(x, y)
             if self.board[board_coords[0]][board_coords[1]] == 0: # player is able to place piece
-                self.placePiece(x, y)
+                self.placed_pieces.append(Piece(board_coords[0],
+                                                board_coords[1],
+                                                self.player_turn,
+                                                self.placePiece(x, y),
+                                                self))
                 self.board[board_coords[0]][board_coords[1]] = self.player_turn
                 self.player_turn = (-1)*self.player_turn
+                self.moves += 1
+                possible_winner = gomoku_state.BoardState(self.board, tuple([board_coords[0],board_coords[1]])).get_winner()
+                if possible_winner != 0:
+                    self.winner(possible_winner)
 
     """
     Draws piece with corresponding color of player's turn and adds to the self.placed_pieces stack
@@ -109,15 +118,13 @@ class Application(Frame):
                                     x + (self.grid_interval * scale),
                                     y + (self.grid_interval * scale),
                                         fill = color)
-        self.placed_pieces.append(piece)
         return piece
 
     """
     Converts canvas coordinates to index values for the 2D array self.board
     """
-    @staticmethod
-    def get_board_coordinates(x, y):
-        return int(x/40-1), int(y/40-1)
+    def get_board_coordinates(self, x, y):
+        return int(x/self.grid_interval-1), int(y/self.grid_interval-1)
 
     """
     Undoes move:
@@ -128,11 +135,10 @@ class Application(Frame):
     def undo_move(self):
         if len(self.placed_pieces) > 0:
             last_piece = self.placed_pieces.pop()
-            last_piece_coords = self.canvas.coords(last_piece)
-            board_coords = self.get_board_coordinates(last_piece_coords[0]+self.grid_interval, last_piece_coords[1]+self.grid_interval)
-            self.board[board_coords[0]][board_coords[1]] = 0
+            self.board[last_piece.x][last_piece.y] = 0
             self.player_turn = (-1)*self.player_turn
-            self.canvas.delete(last_piece)
+            last_piece.remove()
+            self.moves -= 1
 
     #def hover(self, event):
         #print("hovered at", event.x, event.y)
@@ -154,6 +160,26 @@ class Application(Frame):
                 else:
                     ans[1] = self.mults[i+1]
         return tuple(ans)
+
+    """
+    Called when one of the players has won
+    """
+    def winner(self, winner):
+        self.winner_msg = Label(self.master,
+                                text="White wins!" if winner == WHITE else "Black wins!")
+        self.winner_msg.config(font=("Helvetica", 30))
+        self.winner_msg.grid(row=2, column=0)
+
+class Piece:
+    def __init__(self, x, y, player, obj, app):
+        self.x = x
+        self.y = y
+        self.player = player
+        self.obj = obj
+        self.app = app
+
+    def remove(self):
+        self.app.canvas.delete(self.obj)
 
 def main():
     root = Tk()
