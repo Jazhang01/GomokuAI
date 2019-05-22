@@ -102,10 +102,7 @@ class Application(Frame):
                 self.moves += 1
                 possible_winner = gomoku_state.BoardState(self.board, tuple([board_coords[0],board_coords[1]])).get_winner()
                 if possible_winner != 0:
-                    self.winner_msg = Label(self.master,
-                                       text="White wins!" if possible_winner == WHITE else "Black wins!")
-                    self.winner_msg.config(font=("Helvetica", 30))
-                    self.winner_msg.grid(row=2, column=0)
+                    self.winner(possible_winner)
 
     """
     Draws piece with corresponding color of player's turn and adds to the self.placed_pieces stack
@@ -126,9 +123,8 @@ class Application(Frame):
     """
     Converts canvas coordinates to index values for the 2D array self.board
     """
-    @staticmethod
-    def get_board_coordinates(x, y):
-        return int(x/40-1), int(y/40-1)
+    def get_board_coordinates(self, x, y):
+        return int(x/self.grid_interval-1), int(y/self.grid_interval-1)
 
     """
     Undoes move:
@@ -164,6 +160,15 @@ class Application(Frame):
                 else:
                     ans[1] = self.mults[i+1]
         return tuple(ans)
+
+    """
+    Called when one of the players has won
+    """
+    def winner(self, winner):
+        self.winner_msg = Label(self.master,
+                                text="White wins!" if winner == WHITE else "Black wins!")
+        self.winner_msg.config(font=("Helvetica", 30))
+        self.winner_msg.grid(row=2, column=0)
 
 class Piece:
     def __init__(self, x, y, player, obj, app):
