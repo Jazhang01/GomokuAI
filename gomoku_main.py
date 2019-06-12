@@ -9,7 +9,7 @@ WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 800
 GRID_WIDTH = 800
 GRID_HEIGHT = 800
-WAIT_TIME = 40
+WAIT_TIME = 10
 
 BLACK = 1
 WHITE = -1
@@ -34,11 +34,7 @@ class Application(Frame):
         self.master = master
         self.moves = 0
         self.player_turn = BLACK
-        coords = []
-        for x in range(BOARD_SIZE):
-            for y in range(BOARD_SIZE):
-                coords.append(tuple([x,y]))
-        self.board_state = BoardState(grid=[[0] * BOARD_SIZE for _ in range(BOARD_SIZE)], recent_move=(-1,-1), turn = WHITE, coordinates=coords)
+        self.first_move = True
         self.placed_pieces = []
         self.past_board_states = []
         self.canvas = Canvas(master, width=width, height=height)
@@ -98,16 +94,31 @@ class Application(Frame):
         x,y = self.get_intersection(event.x, event.y)
         if (x != -1 and y != -1):
             board_coords = self.get_board_coordinates(x, y)
-            board = self.board_state.get_board()
-            if board[board_coords[1]][board_coords[0]] == 0: # player is able to place piece
-                self.placed_pieces.append(Piece(board_coords[1],
-                                                board_coords[0],
-                                                self.player_turn,
-                                                self.placePiece(x, y),
-                                                self))
-                self.past_board_states.append(self.board_state)
-                self.board_state = self.board_state.play(board_coords[1],board_coords[0])
-                self.player_turn = (-1)*self.player_turn
+            if not self.first_move: board = self.board_state.get_board()
+            if self.first_move or board[board_coords[1]][board_coords[0]] == 0: # player is able to place piece
+                if self.first_move:
+                    self.first_move = False
+                    self.placed_pieces.append(Piece(board_coords[1],
+                                                    board_coords[0],
+                                                    self.player_turn,
+                                                    self.placePiece(x, y),
+                                                    self))
+                    new_board = [[0] * BOARD_SIZE for _ in range(BOARD_SIZE)]
+                    new_board[board_coords[1]][board_coords[0]] = BLACK
+                    self.board_state = BoardState(grid=new_board,
+                                                  recent_move=(board_coords[1], board_coords[0]), turn=BLACK, search_breadth=1)
+                    self.past_board_states.append(self.board_state)
+                    self.player_turn = (-1)*self.player_turn
+
+                else:
+                    self.placed_pieces.append(Piece(board_coords[1],
+                                                    board_coords[0],
+                                                    self.player_turn,
+                                                    self.placePiece(x, y),
+                                                    self))
+                    self.past_board_states.append(self.board_state)
+                    self.board_state = self.board_state.play(board_coords[1],board_coords[0])
+                    self.player_turn = (-1)*self.player_turn
 
                 possible_winner = self.board_state.get_winner()
                 if possible_winner != 0:

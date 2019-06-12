@@ -55,6 +55,12 @@ class MCTSTree(object):
             print(end_time - start_time)
 
     def best_move(self, time_cutoff=60):
+        grid = self.top.get_state()
+
+
+
+
+
         self.build_tree(time_cutoff)
         return self.top.best_child().get_state()
 
