@@ -114,7 +114,8 @@ class BoardState(GameState):
         grid_copy = deepcopy(self.grid)
         grid_copy[y][x] = self.turn * -1
         coord_copy = deepcopy(self.coordinates)
-        coord_copy.remove((y, x))
+        if (y, x) in coord_copy:
+            coord_copy.remove((y, x))
         filled_copy = deepcopy(self.filled)
         filled_copy.append((y, x))
         return BoardState(grid_copy, turn=self.turn*-1, recent_move=(y, x),
