@@ -37,6 +37,12 @@ class BoardState(GameState):
     def size(self):
         return len(self.grid[0])
 
+    def get_board(self):
+        return self.grid
+
+    def get_recent_move(self):
+        return self.recent_move
+
     """
     Returns a list of tuples (y, x) representing all the empty tiles 
     """
