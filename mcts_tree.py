@@ -63,28 +63,28 @@ class MCTSTree(object):
             for x, val in enumerate(row):
                 if grid[y][x] != 0: continue
                 if y-4 >= 0 and x-4 >= 0:
-                    if grid[y-1][x-1] + grid[y-2][x-2] + grid[y-3][x-3] + grid[y-4][x-4] - 4*recent_move <= 1:
+                    if abs(grid[y-1][x-1] + grid[y-2][x-2] + grid[y-3][x-3] + grid[y-4][x-4] - 4*recent_move) <= 1:
                         return self.top.get_state().play(y, x)
                 if y+4 < len(grid) and x+4 < len(grid):
-                    if grid[y+1][x+1] + grid[y+2][x+2] + grid[y+3][x+3] + grid[y+4][x+4] - 4*recent_move <= 1:
+                    if abs(grid[y+1][x+1] + grid[y+2][x+2] + grid[y+3][x+3] + grid[y+4][x+4] - 4*recent_move) <= 1:
                         return self.top.get_state().play(y, x)
                 if x-4 >= 0:
-                    if grid[y][x-1] + grid[y][x-2] + grid[y][x-3] + grid[y][x-4] - 4*recent_move <= 1:
+                    if abs(grid[y][x-1] + grid[y][x-2] + grid[y][x-3] + grid[y][x-4] - 4*recent_move) <= 1:
                         return self.top.get_state().play(y, x)
                 if x+4 < len(grid):
-                    if grid[y][x+1] + grid[y][x+2] + grid[y][x+3] + grid[y][x+4] - 4*recent_move <= 1:
+                    if abs(grid[y][x+1] + grid[y][x+2] + grid[y][x+3] + grid[y][x+4] - 4*recent_move) <= 1:
                         return self.top.get_state().play(y, x)
                 if y+4 < len(grid):
-                    if grid[y+1][x] + grid[y+2][x] + grid[y+3][x] + grid[y+4][x] - 4*recent_move <= 1:
+                    if abs(grid[y+1][x] + grid[y+2][x] + grid[y+3][x] + grid[y+4][x] - 4*recent_move) <= 1:
                         return self.top.get_state().play(y, x)
                 if y-4 >= 0:
-                    if grid[y-1][x] + grid[y-2][x] + grid[y-3][x] + grid[y-4][x] - 4*recent_move <= 1:
+                    if abs(grid[y-1][x] + grid[y-2][x] + grid[y-3][x] + grid[y-4][x] - 4*recent_move) <= 1:
                         return self.top.get_state().play(y, x)
                 if y-4 >= 0 and x+4 < len(grid):
-                    if grid[y-1][x+1] + grid[y-2][x+2] + grid[y-3][x+3] + grid[y-4][x+4] - 4*recent_move <= 1:
+                    if abs(grid[y-1][x+1] + grid[y-2][x+2] + grid[y-3][x+3] + grid[y-4][x+4] - 4*recent_move) <= 1:
                         return self.top.get_state().play(y, x)
                 if y+4 < len(grid) and x-4 >= 0:
-                    if grid[y+1][x-1] + grid[y+2][x-2] + grid[y+3][x-3] + grid[y+4][x-4] - 4*recent_move <= 1:
+                    if abs(grid[y+1][x-1] + grid[y+2][x-2] + grid[y+3][x-3] + grid[y+4][x-4] - 4*recent_move) <= 1:
                         return self.top.get_state().play(y, x)
 
         self.build_tree(time_cutoff)
