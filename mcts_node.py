@@ -118,6 +118,8 @@ class MCTSNode(object):
         self.visited += 1
         if self.state.get_turn() == winner:
             self.score += 1
+        else:
+            self.score -= 100
         if self.parent is not None:
             self.parent.backprop(winner)
 
