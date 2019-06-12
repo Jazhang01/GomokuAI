@@ -1,5 +1,6 @@
 from tkinter import *
 from mcts_node import MCTSNode
+from gomoku_state import BoardState
 import time
 
 class MCTSTree(object):
@@ -55,11 +56,36 @@ class MCTSTree(object):
             print(end_time - start_time)
 
     def best_move(self, time_cutoff=60):
-        grid = self.top.get_state()
-
-
-
-
+        grid = self.top.get_state().get_board()
+        recent_move = self.top.get_state().turn
+        next_move = recent_move*-1
+        for y, row in enumerate(grid):
+            for x, val in enumerate(row):
+                if grid[y][x] != 0: continue
+                if y-4 >= 0 and x-4 >= 0:
+                    if grid[y-1][x-1] + grid[y-2][x-2] + grid[y-3][x-3] + grid[y-4][x-4] - 4*next_move <= 1:
+                        return self.top.get_state().play(y, x)
+                if y+4 < len(grid) and x+4 < len(grid):
+                    if grid[y+1][x+1] + grid[y+2][x+2] + grid[y+3][x+3] + grid[y+4][x+4] - 4*next_move <= 1:
+                        return self.top.get_state().play(y, x)
+                if x-4 >= 0:
+                    if grid[y][x-1] + grid[y][x-2] + grid[y][x-3] + grid[y][x-4] - 4*next_move <= 1:
+                        return self.top.get_state().play(y, x)
+                if x+4 < len(grid):
+                    if grid[y][x+1] + grid[y][x+2] + grid[y][x+3] + grid[y][x+4] - 4*next_move <= 1:
+                        return self.top.get_state().play(y, x)
+                if y+4 < len(grid):
+                    if grid[y+1][x] + grid[y+2][x] + grid[y+3][x] + grid[y+4][x] - 4*next_move <= 1:
+                        return self.top.get_state().play(y, x)
+                if y-4 >= 0:
+                    if grid[y-1][x] + grid[y-2][x] + grid[y-3][x] + grid[y-4][x] - 4*next_move <= 1:
+                        return self.top.get_state().play(y, x)
+                if y-4 >= 0 and x+4 < len(grid):
+                    if grid[y-1][x+1] + grid[y-2][x+2] + grid[y-3][x+3] + grid[y-4][x+4] - 4*next_move <= 1:
+                        return self.top.get_state().play(y, x)
+                if y+4 < len(grid) and x-4 >= 0:
+                    if grid[y+1][x-1] + grid[y+2][x-2] + grid[y+3][x-3] + grid[y+4][x-4] - 4*next_move <= 1:
+                        return self.top.get_state().play(y, x)
 
         self.build_tree(time_cutoff)
         return self.top.best_child().get_state()
