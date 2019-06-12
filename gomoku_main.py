@@ -1,5 +1,7 @@
 from tkinter import *
-import gomoku_state
+from gomoku_state import BoardState
+from mcts_node import MCTSNode
+from mcts_tree import MCTSTree
 
 BOARD_SIZE = 19
 STONE_SIZE_FACTOR = 0.8
@@ -7,6 +9,7 @@ WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 800
 GRID_WIDTH = 800
 GRID_HEIGHT = 800
+WAIT_TIME = 40
 
 BLACK = 1
 WHITE = -1
@@ -29,10 +32,15 @@ class Application(Frame):
         super(Application, self).__init__(master)
         self.grid()
         self.master = master
-        self.board = [[0] * BOARD_SIZE for _ in range(BOARD_SIZE)]
         self.moves = 0
         self.player_turn = BLACK
+        coords = []
+        for x in range(BOARD_SIZE):
+            for y in range(BOARD_SIZE):
+                coords.append(tuple([x,y]))
+        self.board_state = BoardState(grid=[[0] * BOARD_SIZE for _ in range(BOARD_SIZE)], recent_move=(-1,-1), turn = WHITE, coordinates=coords)
         self.placed_pieces = []
+        self.past_board_states = []
         self.canvas = Canvas(master, width=width, height=height)
         self.grid_interval = int(GRID_WIDTH / (BOARD_SIZE + 1))
         self.mults = None
@@ -54,7 +62,6 @@ class Application(Frame):
         self.start_btn.config(font = ("Helvetica", 18))
         self.start_btn.grid(row = 1, column = 2)
         # TODO: Player v. Player, Player v. Computer
-
     """
     Sets up the board, including miscellaneous buttons such as undo, etc.
     """
@@ -91,18 +98,40 @@ class Application(Frame):
         x,y = self.get_intersection(event.x, event.y)
         if (x != -1 and y != -1):
             board_coords = self.get_board_coordinates(x, y)
-            if self.board[board_coords[0]][board_coords[1]] == 0: # player is able to place piece
-                self.placed_pieces.append(Piece(board_coords[0],
-                                                board_coords[1],
+            board = self.board_state.get_board()
+            if board[board_coords[1]][board_coords[0]] == 0: # player is able to place piece
+                self.placed_pieces.append(Piece(board_coords[1],
+                                                board_coords[0],
                                                 self.player_turn,
                                                 self.placePiece(x, y),
                                                 self))
-                self.board[board_coords[0]][board_coords[1]] = self.player_turn
+                self.past_board_states.append(self.board_state)
+                self.board_state = self.board_state.play(board_coords[1],board_coords[0])
                 self.player_turn = (-1)*self.player_turn
-                self.moves += 1
-                possible_winner = gomoku_state.BoardState(self.board, tuple([board_coords[0],board_coords[1]])).get_winner()
+
+                possible_winner = self.board_state.get_winner()
                 if possible_winner != 0:
                     self.winner(possible_winner)
+                else:
+                    ai_mcts_node = MCTSNode(self.board_state)
+                    ai_mcts_tree = MCTSTree(ai_mcts_node)
+
+                    next_state = ai_mcts_tree.best_move(time_cutoff=WAIT_TIME)
+                    self.board_state = next_state
+
+                    ai_move = next_state.get_recent_move()
+                    print("("+str(ai_move[0])+", "+str(ai_move[1])+")")
+                    self.placed_pieces.append(Piece(ai_move[1],
+                                                    ai_move[0],
+                                                    self.player_turn,
+                                                    self.placePiece((ai_move[1]+1)*self.grid_interval, (ai_move[0]+1)*self.grid_interval),
+                                                    self))
+                    self.past_board_states.append(self.board_state)
+                    self.player_turn = (-1) * self.player_turn
+
+                    possible_winner = self.board_state.get_winner()
+                    if possible_winner != 0:
+                        self.winner(possible_winner)
 
     """
     Draws piece with corresponding color of player's turn and adds to the self.placed_pieces stack
@@ -133,12 +162,13 @@ class Application(Frame):
     - Deletes last piece from canvas (board)
     """
     def undo_move(self):
-        if len(self.placed_pieces) > 0:
-            last_piece = self.placed_pieces.pop()
-            self.board[last_piece.x][last_piece.y] = 0
-            self.player_turn = (-1)*self.player_turn
-            last_piece.remove()
-            self.moves -= 1
+        for i in range(2):
+            if len(self.placed_pieces) > 0:
+                last_piece = self.placed_pieces.pop()
+                self.board_state = self.past_board_states.pop()
+                self.player_turn = (-1)*self.player_turn
+                last_piece.remove()
+                self.moves -= 1
 
     #def hover(self, event):
         #print("hovered at", event.x, event.y)

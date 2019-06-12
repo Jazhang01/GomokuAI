@@ -1,3 +1,4 @@
+from tkinter import *
 from mcts_node import MCTSNode
 import time
 
